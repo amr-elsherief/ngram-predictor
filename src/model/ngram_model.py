@@ -104,6 +104,7 @@ class NGramModel:
         Returns:
             None
         """
+        os.makedirs(os.path.dirname(model_path), exist_ok=True)
         with open(model_path, 'w', encoding='utf-8') as f:
             json.dump(self.model, f, indent=2)
 
@@ -115,6 +116,7 @@ class NGramModel:
         Returns:
             None
         """
+        os.makedirs(os.path.dirname(vocab_path), exist_ok=True)
         with open(vocab_path, 'w', encoding='utf-8') as f:
             json.dump(self.vocab_list, f, indent=2)
 
@@ -155,3 +157,4 @@ if __name__ == "__main__":
     main()
 #RUN Example (build model from train_tokens.txt and save to model/model.json and model/vocab.json)
 #python ngram-predictor/src/model/ngram_model.py --token_file ngram-predictor/data/processed/train_tokens.txt --model_path ngram-predictor/data/model/model.json --vocab_path ngram-predictor/data/model/vocab.json
+#python src/model/ngram_model.py --token_file data/processed/train_tokens.txt --model_path data/model/model.json --vocab_path data/model/vocab.json
