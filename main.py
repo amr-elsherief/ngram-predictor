@@ -3,6 +3,9 @@ import os
 import sys
 import argparse
 from dotenv import load_dotenv
+
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src/data_prep')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src/model')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src/inference')))
@@ -11,8 +14,8 @@ from ngram_model import NGramModel
 from predictor import Predictor
 
 def run_dataprep():
-    input_folder = 'ngram-predictor/data/raw/train'
-    output_file = 'ngram-predictor/data/processed/train_tokens.txt'
+    input_folder = os.path.join(BASE_DIR, 'data', 'raw', 'train')
+    output_file = os.path.join(BASE_DIR, 'data', 'processed', 'train_tokens.txt')
     norm = Normalizer()
     texts = norm.load(input_folder)
     all_sentences = []
@@ -26,11 +29,11 @@ def run_dataprep():
     print(f"Data prep complete. Saved to {output_file}.")
 
 def run_model():
-    token_file = 'ngram-predictor/data/processed/train_tokens.txt'
-    model_path = 'ngram-predictor/data/model/model.json'
-    vocab_path = 'ngram-predictor/data/model/vocab.json'
+    token_file = os.path.join(BASE_DIR, 'data', 'processed', 'train_tokens.txt')
+    model_path = os.path.join(BASE_DIR, 'data', 'model', 'model.json')
+    vocab_path = os.path.join(BASE_DIR, 'data', 'model', 'vocab.json')
     import dotenv
-    env_path = os.path.join('ngram-predictor', 'config', '.env')
+    env_path = os.path.join(BASE_DIR, 'config', '.env')
     env = {}
     if os.path.exists(env_path):
         for line in open(env_path, 'r', encoding='utf-8'):
@@ -47,10 +50,10 @@ def run_model():
     print(f"Model built and saved to {model_path} and {vocab_path}.")
 
 def run_inference():
-    model_path = 'ngram-predictor/data/model/model.json'
-    vocab_path = 'ngram-predictor/data/model/vocab.json'
+    model_path = os.path.join(BASE_DIR, 'data', 'model', 'model.json')
+    vocab_path = os.path.join(BASE_DIR, 'data', 'model', 'vocab.json')
     ngram_order = 4
-    env_path = os.path.join('ngram-predictor', 'config', '.env')
+    env_path = os.path.join(BASE_DIR, 'config', '.env')
     env = {}
     if os.path.exists(env_path):
         for line in open(env_path, 'r', encoding='utf-8'):
@@ -86,7 +89,7 @@ def main():
     # Load .env
     try:
         from dotenv import load_dotenv
-        load_dotenv(os.path.join('ngram-predictor', 'config', '.env'))
+        load_dotenv(os.path.join(BASE_DIR, 'config', '.env'))
     except ImportError:
         pass
 
