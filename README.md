@@ -46,5 +46,5 @@ The repository may include:
 
 1. Clone the repository:
    ```bash
-   git clone [https://github.com/amr-elsherief/public.git](https://github.com/amr-elsherief/ngram-predictor.git)
+   git clone https://github.com/amr-elsherief/ngram-predictor.git
 
