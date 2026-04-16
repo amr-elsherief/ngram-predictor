@@ -2,12 +2,25 @@
 import sys
 import os
 import streamlit as st
+from dotenv import load_dotenv
+
+ROOT_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), '../..'))
+ENV_PATH = os.path.join(ROOT_DIR, 'config', '.env')
+load_dotenv(ENV_PATH)
+
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../model')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../data_prep')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '../inference')))
 from ngram_model import NGramModel
 from normalizer import Normalizer
 from predictor import Predictor
+
+
+def _resolve_path(env_key, default_relative_path):
+    configured_path = os.getenv(env_key, default_relative_path)
+    if os.path.isabs(configured_path):
+        return configured_path
+    return os.path.join(ROOT_DIR, configured_path)
 
 
 class PredictorUI:
@@ -19,12 +32,12 @@ class PredictorUI:
         self.model = None
         self.normalizer = None
         self.predictor = None
-        self.k = 3
-        self.ngram_order = 4
-        self.model_path = 'ngram-predictor/data/model/model.json'
-        self.vocab_path = 'ngram-predictor/data/model/vocab.json'
-        self.input_folder = 'ngram-predictor/data/raw/train'
-        self.token_file = 'ngram-predictor/data/processed/train_tokens.txt'
+        self.k = int(os.getenv('TOP_K', 3))
+        self.ngram_order = int(os.getenv('NGRAM_ORDER', 4))
+        self.model_path = _resolve_path('MODEL_PATH', 'data/model/model.json')
+        self.vocab_path = _resolve_path('VOCAB_PATH', 'data/model/vocab.json')
+        self.input_folder = _resolve_path('INPUT_FOLDER', 'data/raw/train')
+        self.token_file = _resolve_path('TOKEN_FILE', 'data/processed/train_tokens.txt')
 
     def reload_pipeline(self):
         # Data prep

@@ -5,6 +5,9 @@ import argparse
 from dotenv import load_dotenv
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ENV_PATH = os.path.join(BASE_DIR, 'config', '.env')
+
+load_dotenv(ENV_PATH)
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src/data_prep')))
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), 'src/model')))
@@ -13,9 +16,16 @@ from normalizer import Normalizer
 from ngram_model import NGramModel
 from predictor import Predictor
 
+
+def _resolve_path(env_key, default_relative_path):
+    configured_path = os.getenv(env_key, default_relative_path)
+    if os.path.isabs(configured_path):
+        return configured_path
+    return os.path.join(BASE_DIR, configured_path)
+
 def run_dataprep():
-    input_folder = os.path.join(BASE_DIR, 'data', 'raw', 'train')
-    output_file = os.path.join(BASE_DIR, 'data', 'processed', 'train_tokens.txt')
+    input_folder = _resolve_path('INPUT_FOLDER', 'data/raw/train')
+    output_file = _resolve_path('TOKEN_FILE', 'data/processed/train_tokens.txt')
     norm = Normalizer()
     texts = norm.load(input_folder)
     all_sentences = []
@@ -29,19 +39,11 @@ def run_dataprep():
     print(f"Data prep complete. Saved to {output_file}.")
 
 def run_model():
-    token_file = os.path.join(BASE_DIR, 'data', 'processed', 'train_tokens.txt')
-    model_path = os.path.join(BASE_DIR, 'data', 'model', 'model.json')
-    vocab_path = os.path.join(BASE_DIR, 'data', 'model', 'vocab.json')
-    import dotenv
-    env_path = os.path.join(BASE_DIR, 'config', '.env')
-    env = {}
-    if os.path.exists(env_path):
-        for line in open(env_path, 'r', encoding='utf-8'):
-            if '=' in line and not line.strip().startswith('#'):
-                k, v = line.strip().split('=', 1)
-                env[k.strip()] = v.strip()
-    ngram_order = int(env.get('NGRAM_ORDER', 4))
-    unk_threshold = int(env.get('UNK_THRESHOLD', 1))
+    token_file = _resolve_path('TOKEN_FILE', 'data/processed/train_tokens.txt')
+    model_path = _resolve_path('MODEL_PATH', 'data/model/model.json')
+    vocab_path = _resolve_path('VOCAB_PATH', 'data/model/vocab.json')
+    ngram_order = int(os.getenv('NGRAM_ORDER', 4))
+    unk_threshold = int(os.getenv('UNK_THRESHOLD', 1))
     model = NGramModel(ngram_order=ngram_order, unk_threshold=unk_threshold)
     model.build_vocab(token_file)
     model.build_counts_and_probabilities(token_file)
@@ -50,21 +52,10 @@ def run_model():
     print(f"Model built and saved to {model_path} and {vocab_path}.")
 
 def run_inference():
-    model_path = os.path.join(BASE_DIR, 'data', 'model', 'model.json')
-    vocab_path = os.path.join(BASE_DIR, 'data', 'model', 'vocab.json')
-    ngram_order = 4
-    env_path = os.path.join(BASE_DIR, 'config', '.env')
-    env = {}
-    if os.path.exists(env_path):
-        for line in open(env_path, 'r', encoding='utf-8'):
-            if '=' in line and not line.strip().startswith('#'):
-                k, v = line.strip().split('=', 1)
-                env[k.strip()] = v.strip()
-    if 'NGRAM_ORDER' in env:
-        ngram_order = int(env['NGRAM_ORDER'])
-    k = 3
-    if 'TOP_K' in env:
-        k = int(env['TOP_K'])
+    model_path = _resolve_path('MODEL_PATH', 'data/model/model.json')
+    vocab_path = _resolve_path('VOCAB_PATH', 'data/model/vocab.json')
+    ngram_order = int(os.getenv('NGRAM_ORDER', 4))
+    k = int(os.getenv('TOP_K', 3))
     model = NGramModel(ngram_order=ngram_order)
     model.load(model_path, vocab_path)
     normalizer = Normalizer()
@@ -85,13 +76,6 @@ def main():
     parser = argparse.ArgumentParser(description='NGram Predictor CLI')
     parser.add_argument('--step', type=str, required=True, choices=['dataprep', 'model', 'inference', 'all'], help='Pipeline step to run')
     args = parser.parse_args()
-
-    # Load .env
-    try:
-        from dotenv import load_dotenv
-        load_dotenv(os.path.join(BASE_DIR, 'config', '.env'))
-    except ImportError:
-        pass
 
     if args.step == 'dataprep':
         run_dataprep()
