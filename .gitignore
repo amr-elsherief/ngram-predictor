@@ -1,3 +1,6 @@
 # Ignore generated model and vocab files
 /data/model/model.json
 /data/model/vocab.json
+*.json
+__pycache__/
+

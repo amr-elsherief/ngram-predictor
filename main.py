@@ -107,7 +107,7 @@ def main():
 if __name__ == "__main__":
     main()
 #RUN Example
-#python ngram-predictor/main.py --step all
-#python ngram-predictor/main.py --step inference
-#python ngram-predictor/main.py --step model
-#python ngram-predictor/main.py --step dataprep
+#python main.py --step all
+#python main.py --step inference
+#python main.py --step model
+#python main.py --step dataprep
